@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify Song Lyric Finder</title>
+    <link rel="stylesheet" href="index.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Inter:wght@100..900&display=swap" rel="stylesheet">
+</head>
+<body>
+<div id="container">
+    <div class="center-text">
+        <h1 id="big-text1">Hi there!</h1>
+        <h1 id="big-text2"> What song are you looking for?</h1>
+        <p id="small-text">
+            The Spotify Song Lyric Finder is a simple web application built with HTML, CSS, and JavaScript that allows users to search for song lyrics. Since Spotify doesn’t provide lyrics through its API, this tool fetches lyrics from third-party sources like the Lyrics.ovh API.
+        </p>
+    </div>
+
+    <div class="boxes">
+        <div id="box1">
+            <div class="contain1">
+                <img src="img/spot.png" alt="" style="width: 35px; height: 35px;">
+                <h1>Love Shine</h1>
+            </div>
+            <p class="card-smalltext1">LEEHEESANG</p>
+        </div>
+        <div id="box2">
+            <div class="contain2">
+                <img src="img/spot.png" alt="" style="width: 35px; height: 35px;">
+                <h1>Scott Street</h1>
+            </div>
+            <p class="card-smalltext2">PHOEBE BRIDGERS</p>
+        </div>
+        <div id="box3">
+            <div class="contain3">
+                <img src="img/spot.png" alt="" style="width: 35px; height: 35px;">
+                <h1>Everything</h1>
+            </div>
+            <p class="card-smalltext3">THE BLACK SKIRTS</p>
+        </div>
+    </div>
+
+    <div class="inputs">
+        <div id="input1">
+            <h1 id="songname-text">Song Name</h1>
+            <input type="text" id="songname" placeholder="">
+        </div>
+        <div id="input2">
+            <h1 id="artistname-text">Artist Name</h1>
+            <input type="text" id="artistname" placeholder="">
+        </div>
+        <button id="button-confirm" onclick="fetchLyrics()">Find Lyrics</button>
+    </div>
+</div>
+
+<!-- Lyrics Popup -->
+<div class="popup-container" id="popupContainer" >
+    <div class="popup">
+        <div class="popup-texts">
+            <img src="img/spot.png" alt="" style="width: 70px; height: 70px;">
+            <h1 id="popupSongName">test</h1>
+        </div>
+        <button onclick="closePopup()" id="closebutton"> Search Again</button>
+        <h3 id="popupArtistName">test</h3>
+        
+        <p id="lyricsText">Loading...</p>
+    </div>
+</div>
+
+<script>
+
+    function closePopup() {
+        const popupContainer = document.getElementById("popupContainer");
+        popupContainer.style.display = "none";
+    }
+    
+    async function fetchLyrics() {
+        const songName = document.getElementById("songname").value.trim();
+        const artistName = document.getElementById("artistname").value.trim();
+        const lyricsText = document.getElementById("lyricsText");
+        const popupContainer = document.getElementById("popupContainer");
+        const popupSongName = document.getElementById("popupSongName");
+        const popupArtistName = document.getElementById("popupArtistName");
+
+        
+    
+        if (songName === "" || artistName === "") {
+            alert("Please enter both song name and artist name.");
+            return;
+        }
+    
+        // Set the song and artist names in the popup
+        popupSongName.innerText = songName;
+        popupArtistName.innerText = artistName;
+    
+        popupContainer.style.display = "flex";
+        lyricsText.innerText = "Loading...";
+    
+        // First API (Lyrics.ovh)
+        const lyricsOvhUrl = `https://api.lyrics.ovh/v1/${encodeURIComponent(artistName)}/${encodeURIComponent(songName)}`;
+    
+        try {
+            let response = await fetch(lyricsOvhUrl);
+    
+            if (!response.ok) {
+                throw new Error("Failed to fetch from Lyrics.ovh");
+            }
+    
+            let data = await response.json();
+    
+            if (data.lyrics) {
+                lyricsText.innerText = data.lyrics;
+                return;
+            }
+    
+            // If Lyrics.ovh fails, try another API
+            const backupApiUrl = `https://lyrist.vercel.app/api/${encodeURIComponent(songName)}?artist=${encodeURIComponent(artistName)}`;
+            response = await fetch(backupApiUrl);
+    
+            if (!response.ok) {
+                throw new Error("Failed to fetch from backup API");
+            }
+    
+            data = await response.json();
+    
+            if (data.lyrics) {
+                lyricsText.innerText = data.lyrics;
+                return;
+            }
+    
+            lyricsText.innerText = "Lyrics not found. Try another song.";
+        } catch (error) {
+            lyricsText.innerText = "An error occurred. Please try again later.";
+            console.error("Error fetching lyrics:", error);
+        }
+    }
+    
+</script>
+
+</body>
+</html>
